@@ -81,4 +81,43 @@ async function login(req, res) {
   }
 }
 
-module.exports = { signup, login };
+async function updateUser(req, res, next) {
+  console.log(req.body);
+
+  if (req.body.password) {
+    let salt = await bcrypt.genSalt(12);
+    let hashedPassword = await bcrypt.hash(req.body.password, salt);
+
+    req.body.password = hashedPassword;
+  }
+
+  try {
+    let updatedUser = await User.findOneAndUpdate(
+      { email: res.locals.decodedJwt.email },
+      req.body,
+      { new: true }
+    );
+
+    if (req.body.password) {
+      res.status(202).json({ message: "success", payload: updatedUser });
+    } else {
+      res.json({ message: "success", payload: updatedUser });
+    }
+  } catch (e) {
+    next(e);
+  }
+}
+
+async function fetchUserInfo(req, res, next) {
+  try {
+    let userInfo = await User.findOne({
+      email: res.locals.decodedJwt.email,
+    }).select("-password -__v -friends -_id");
+
+    res.json({ message: "success", payload: userInfo });
+  } catch (e) {
+    next(e);
+  }
+}
+
+module.exports = { signup, login, updateUser, fetchUserInfo };

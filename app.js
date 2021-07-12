@@ -9,6 +9,7 @@ const ErrorMessageHandlerClass = require("./routes/utils/ErrorMessageHandlerClas
 const errorController = require("./routes/utils/errorController");
 const userRouter = require("./routes/user/userRouter");
 const twilioRouter = require("./routes/twilio/twilioRouter");
+const friendRouter = require("./routes/friend/friendRouter");
 app.use(cors());
 
 if (process.env.NODE_ENV === "development") {
@@ -30,6 +31,7 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use("/api/user", userRouter);
 app.use("/api/twilio", twilioRouter);
+app.use("/api/friend", friendRouter);
 
 app.all("*", function (req, res, next) {
   next(
