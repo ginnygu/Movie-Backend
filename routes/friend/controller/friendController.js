@@ -48,12 +48,58 @@ const createFriend = async (req, res) => {
   }
 };
 
-const editFriend = () => {};
-const deleteFriend = () => {};
+const updateFriendById = async (req, res, next) => {
+  let updateObj = {};
+  let body = req.body;
+  for (let key in body) {
+    if (body[key] !== "") {
+      updateObj[key] = body[key];
+    }
+  }
+
+  console.log(updateObj);
+  try {
+    let updatedFriend = await Friend.findByIdAndUpdate(
+      req.params.id,
+      updateObj,
+      { new: true }
+    ).select("-__v");
+
+    res.json({
+      message: "success",
+      payload: updatedFriend,
+    });
+  } catch (e) {
+    next(e);
+  }
+};
+const deleteFriendById = async (req, res, next) => {
+  try {
+    let deletedFriend = await Friend.findByIdAndRemove(req.params.id);
+
+    const { decodedJwt } = res.locals;
+
+    let foundUser = await User.findOne({ email: decodedJwt.email });
+
+    let foundUserArray = foundUser.friends;
+
+    let filteredFriendsArray = foundUserArray.filter((id) => {
+      id.toString() !== deletedFriend._id.toString();
+    });
+
+    foundUser.friends = filteredFriendsArray;
+
+    await foundUser.save();
+
+    res.json({ message: "success", payload: deletedFriend });
+  } catch (e) {
+    next(e);
+  }
+};
 
 module.exports = {
   getAllFriends,
   createFriend,
-  editFriend,
-  deleteFriend,
+  updateFriendById,
+  deleteFriendById,
 };
